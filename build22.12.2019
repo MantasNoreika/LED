@@ -1,0 +1,255 @@
+/*
+   Author    : Mantas Noreika
+   Department: Technology University Dublin / Project ( William Raferty )
+   Date      : 2019 11 10 - 20
+   Objective : Create No Return Zero (NZR) communication protocol
+*/
+
+
+
+
+#define PIN           7                                    // Debug purposes digital pin
+#define LED           6                                    // Debug purposes digital pin (Default prebuilt LED)
+#define H_Level_H   600                                    // High Time interval For signal to stay High                         Duty  66% not used
+#define H_Level_L   300                                    // High Time interval For signal to stay Low                          Duty  33% not used
+#define L_Level_H   600                                    // Low Time interval For signal to stay High                          Duty  50% not tused
+#define L_Level_L   600                                    // Low Time interval For signal to stay Low                           Duty  50% used
+#define Period      300                                    // Period of Time we will use to make duty 60/30 % or vice versa
+#define MAX_by_4(temp)  (sizeof(temp) / sizeof((temp)[0])*4) // Define size of txBuff and name it to MAX_by_4(temp)
+
+int temp2[50]={242,243,247,B100,B101,B110,B111,B1000,B1001,B1010,B1011,B1100,B1101,B1110,B1111,B10000,B10001,B10010,B10011,B10100,B10101,B10110,B10111,B11000,B11001,B11010,B11011,B11100,B11101,B11110,B11111,B100000,B100001,B100010,B100011,B100100,B100101,B100110,B100111,B101000,B101001,B101010,B101011,B101100,B101101,B101110,B101111,B110000,B110001};
+int temp[50]= {0xff, 0xff, 0xff, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A,
+                   0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x31, 0x32, 0x33,
+                  };
+ int o=0;int val=0;     
+ boolean approve = true;     
+ boolean out = false;   
+// boolean go ;    
+/*
+  int temp[50][7] = {{0x01},
+  {0x02},
+  {0x03},
+  {0x04},
+  {0x05},
+  {0x06},
+  {0x07},
+  {0x08},
+  {0x09},
+  {0x0A},
+  {0x0B},
+  {0x0C},
+  {0x0D},
+  {0x0E},
+  {0x0F},
+  {0x11},
+  {0x12},
+  {0x13},
+  {0x14},
+  {0x15},
+  {0x16},
+  {0x17},
+  {0x18},
+  {0x19},
+  {0x1A},
+  {0x1B},
+  {0x1C},
+  {0x1D},
+  {0x1E},
+  {0x1F},
+  {0x20},
+  {0x21},
+  {0x22},
+  {0x23},
+  {0x24},
+  {0x25},
+  {0x26},
+  {0x27},
+  {0x28},
+  {0x29},
+  {0x2A},
+  {0x2B},
+  {0x2C},
+  {0x2D},
+  {0x2E},
+  {0x2F},
+  {0x30},
+  {0x31},
+  {0x32},
+  {0x33},
+  };*/
+char txBuff[MAX_by_4(temp)];                                 // Transmission buffer holds RGB Values after it is processed based on NRZ protocol   
+
+void dataIn(int temporary)                                 // receive 24 bit and each of them process accordingly to datasheet of WS2818B
+{
+
+  for (int i = 7; i >= 0; i--) {                           // For Loop through 8 bit data of temp array
+    if (temporary & (1 << i)) {                              // Look for 1
+      processArray(1);                                                            // Action Proced to Function Output pass value 1
+    } else {                                                 // Look for 0
+      processArray(0);                                                             // Action Proced to Function Output pass value 0
+    }
+
+    if (o == MAX_by_4(temp)) {
+      o = 0;
+      debugFunction();
+      approve = false;
+    }
+  }
+  Serial.println("$");
+
+
+}
+
+
+
+void processArray(char x)
+{
+  if((x==1)&&(o<MAX_by_4(temp)))                                    // IF x is 1
+  {  
+    txBuff[o++]='1';                              // Store 1110 to txBuff[]
+    txBuff[o++]='1';                                    // Increment o by 1 
+    txBuff[o++]='1';
+    txBuff[o++]='0';
+    
+    }
+ 
+   if((x==0)&&(o<MAX_by_4(temp)))                                   // IF x is 0
+  {  
+   txBuff[o++]='0';                              // Store 0001 to txBuff[]
+   txBuff[o++]='0';                                    // Increment o by 1
+   txBuff[o++]='0';
+   txBuff[o++]='1';
+  }
+ }
+
+void waveInitial(void)                        // Create function which pass blue and white values
+{
+  
+for(int x=0;x<(sizeof(temp2)/sizeof(temp2[0]));x++){
+ //  temp2[x]={B0};
+ if(x<((sizeof(temp2)/sizeof(temp2[0]))-2)){
+     temp2[x+3]=temp2[x];
+   temp2[x+4]=temp2[x+1];
+   temp2[x+5]=temp2[x+3];
+Serial.println(temp2[x]);
+}
+
+
+}
+val++;
+}
+
+void test(void){
+  int ram1,ram2,ram3;
+ 
+temp2[2]={210};//B
+temp2[1]={97};//G
+temp2[0]={56};//R
+
+  for(int a=0;10;a++){
+    Serial.println("&");
+    for(int w=2;w<(sizeof(temp2)/sizeof(temp2[0]));w++){
+      if(w<((sizeof(temp2)/sizeof(temp2[0]))-2)){
+        ram1=temp2[w+3];
+        ram2=temp2[w+2];
+        ram3=temp2[w+1];
+        temp2[w+3]=temp2[w];  // BLUE
+        temp2[w+2]=temp2[w-1]; // GRAY
+        temp2[w+1]=temp2[w-2]; // RED
+        temp2[w]=ram1;
+        temp2[w-1]=ram2;
+        temp2[w-2]=ram3;
+      }
+      
+      
+      
+      Serial.print(temp2[w],DEC);
+    
+    }}
+
+  val=val+1;
+}
+
+
+void output(int x)                                    // Output of dataIn
+{
+  if (x == '1') {                                         // If statement Pass 1
+    digitalWrite(LED, HIGH);                          //Turn ON PIN For Certain Time
+    delay(Period);
+    // Serial.print(H_Level_H);                          // Debug
+   // digitalWrite(LED, LOW);                            // Turn OFF PIN For Certain Time
+    //delayMicroseconds(H_Level_L);
+    // Serial.print(H_Level_L);                         // Debug
+  }
+  if (x == '0') {                                       // If statement Pass 0
+    digitalWrite(LED, LOW);                          //Turn ON PIN For Certain Time
+    delay(Period);
+    // Serial.print(L_Level_H);
+    //digitalWrite(LED, LOW);                          //Turn OFF PIN For Certain Time
+    //delay(L_Level_L);
+    // Serial.print(L_Level_L);                        // Debug
+  }
+   out =false;
+}
+
+void checkArray(void)
+{  
+  for(int x=0;x<(sizeof(temp2)/sizeof(temp2[0]));x++){
+  Serial.println(temp2[x]);
+}
+}
+
+void debugFunction(void)
+{
+  for (int x = 0; x < MAX_by_4(temp); x++) {             // For Loop x less than 200 
+   Serial.print(txBuff[x]);                              // Print txBuffer from 0 to 200 
+  }
+}
+
+
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  pinMode(PIN, OUTPUT);                           // PIN OUTPUT
+  pinMode(LED, OUTPUT);                           // LED OUTPUT
+Serial.print("HI");
+}
+
+
+
+void loop()                                    // Continuesly executed code between brackets
+{
+ /*
+if ( approve == true ) {
+  for (int x = 0; x <= 50; x++) {
+    dataIn(temp[x]);    // Call Function dataIn and pass 8 bits stored as integer named temp
+  }
+  out = true;
+  
+  }
+  if(out == true){
+    for (int x=0;x<MAX_by_4(temp);x++){
+  //
+  Serial.println(txBuff[x]);
+   output(txBuff[x]);
+  }
+  out = false;
+  //approve =false;
+  //
+  }
+ */ 
+
+if(val<1){   
+waveInitial();
+}
+Serial.print(val);
+if((val>1) && (val<2)){
+  test();
+}
+ // checkArray();
+ // out=true;
+  //approve=true;
+  //digitalWrite(LED,HIGH);
+ //Serial.println(txBuff[1]);
+}
