@@ -1,0 +1,207 @@
+#define PIN         6
+#define Period      300                                    // Period of Time we will use to make duty 60/30 % or vice versa
+#define MAX_by_4(temp)  (sizeof(temp) / sizeof((temp)[0])*4) // Define size of txBuff and name it to MAX_by_4(temp)
+#define MAX_by_4(txtt)  (sizeof(txtt) / sizeof((txtt)[0])*4*8) // Define size of txBuff and name it to MAX_by_4(temp)
+#define SizeLED    51
+
+
+
+int temp2[SizeLED];
+int temp[SizeLED];
+
+
+
+
+ int o=0;int val=0;
+ unsigned int e=0;     
+ boolean approve = false;     
+ boolean out = false;
+
+
+
+int txtt[SizeLED];
+int color=2;
+int dualC=1;
+int qty=0;
+char txBuff[MAX_by_4(txtt)];                                 // Transmission buffer holds RGB Values after it is processed based on NRZ protocol   
+
+int resTimes=(MAX_by_4(txtt)/288);
+
+//===============================Color Functions
+void blue() //1
+{
+txtt[0]=25;txtt[1]=76;txtt[2]=225;
+
+}
+void red() //2
+{
+txtt[0]=226;txtt[1]=15;txtt[2]=15;
+  
+}
+ void green()//3
+ {
+txtt[0]=25;txtt[1]=225;txtt[2]=73;
+  
+ }
+
+ void yellow()//4
+ {
+txtt[0]=237;;txtt[1]=230;txtt[2]=22;
+  
+ }
+
+void white()//5
+{
+  
+txtt[0]=231;txtt[1]=245;txtt[2]=245;
+}
+//===============================End Colors Functions
+
+
+//===============================Main Functions 
+void dataIn(int temporary)                                 // receive 24 bit and each of them process accordingly to datasheet of WS2818B
+{
+
+  for (int i = 7; i >= 0; i--) {                           // For Loop through 8 bit data of temp array
+    if (temporary & (1 << i)) {                              // Look for 1
+      processArray(1);                                                            // Action Proced to Function Output pass value 1
+    } else {                                                 // Look for 0
+      processArray(0);                                                             // Action Proced to Function Output pass value 0
+    }
+
+    if (o == MAX_by_4(temp)) {
+      o = 0;
+     // debugFunction();
+     // approve = false;
+    }qty++;
+  }
+  Serial.println(qty);
+
+
+}
+
+void processArray(int x)
+{
+  if((x==1)&&(o<MAX_by_4(txtt)))                                    // IF x is 1
+  {  
+    txBuff[o++]='1';                              // Store 1110 to txBuff[]
+    txBuff[o++]='1';                                    // Increment o by 1 
+    txBuff[o++]='1';
+    txBuff[o++]='0';
+    
+    }
+ 
+   if((x==0)&&(o<MAX_by_4(txtt)))                                   // IF x is 0
+  {  
+   txBuff[o++]='0';                              // Store 0001 to txBuff[]
+   txBuff[o++]='0';                                    // Increment o by 1
+   txBuff[o++]='0';
+   txBuff[o++]='1';
+  }
+ // Serial.print("£");
+ }
+//Insert reset every 3 rd packet function bellow
+void resT(int x)
+{
+
+for(int d=1;d<=x;d++)
+{
+  int tmp=288*d;
+  txBuff[tmp]={'2'};
+  //delay(1000);
+  //Serial.println("-");
+  //Serial.print(tmp);
+}
+  
+}
+//===============================Main Functions END
+
+
+//==============================Control Array Functions
+void test()
+{
+
+  switch(color)
+  {
+    case 1:
+    blue();
+    break;
+    case 2:
+    red();
+    break;
+    case 3:
+    green();
+    break;
+    case 4:
+    yellow();
+    break;
+    case 5:
+    white();
+    break;
+    default : white();
+  }
+  
+  for(int x=SizeLED;x>27;x=x-3)
+  {
+  // r=txtt[x-3];g=txtt[x-2];b=txtt[x-1];
+   
+      txtt[x]=txtt[0];
+      txtt[x-1]=txtt[1];
+      txtt[x-2]=txtt[2];
+      txtt[x+1]=0;
+      txtt[x+2]=0;
+      txtt[x+3]=0;
+  
+    
+    deFunction();
+    Serial.println("-");
+  }
+  
+  }
+
+
+void deFunction()
+{
+ // Serial.print(rss);
+  for (int x = 0; x < SizeLED; x++) {             // For Loop x less than 200 
+   dataIn(txtt[x]);   
+   delay(100);// Print txBuffer from 0 to 50 
+  }
+  resT(resTimes);
+ delay(10);
+   for (int a = 0; a < MAX_by_4(txtt); a++) {             // For Loop x less than 200 
+   output(txBuff[a]);
+
+  //Serial.print(txBuff[a]);
+ 
+   delay(100);// Print txBuffer from 0 to 50 
+  }
+  //Serial.println("=============");
+  //Serial.print(MAX_by_4(txtt));
+  //Serial.println("=============");
+}
+//==============================End Control Array
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+ // pinMode(PIN, OUTPUT);                           // PIN OUTPUT
+ // pinMode(LED, OUTPUT);                           // LED OUTPUT
+Serial.print("HI");
+//txtt[0]=1;
+//txtt[1]=1;
+//txtt[2]=1;
+for(int x=0;x<SizeLED;x++){
+  txtt[x]=0;
+}
+}
+void loop() {
+  // put your main code here, to run repeatedly:
+ // blue();
+//play();
+//half(1,1,1);
+test();
+//mixBG();
+
+delay(3000);
+}
